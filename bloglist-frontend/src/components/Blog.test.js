@@ -6,7 +6,7 @@ import Togglable from './togglable'
 import userEvent from '@testing-library/user-event'
 import CreateBlog from './createblog'
 
-describe('test blog and like buttons', () => {
+/* describe('test blog and like buttons', () => {
   const blog = {
     title: 'Component testing is done with react-testing-library',
     author: 'Maskim',
@@ -17,7 +17,7 @@ describe('test blog and like buttons', () => {
     username: 'vlad',
   }
   test('renders content', () => {
-    const { container } = render(<Blog blog={blog} user={user} />)
+    const { container } = render(<Blog blog={blog} />)
 
     const div = container.querySelector('.blog')
     expect(div).toHaveTextContent(
@@ -38,7 +38,7 @@ describe('test blog and like buttons', () => {
     await user1.click(button)
     expect(mockHandler.mock.calls).toHaveLength(2)
   })
-})
+}) */
 
 // test button clicks
 

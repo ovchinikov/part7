@@ -1,4 +1,5 @@
 const express = require('express')
+const path = require('path')
 
 const app = express()
 const cors = require('cors')
@@ -18,7 +19,11 @@ if (process.env.NODE_ENV === 'test') {
   const testingRouter = require('./controllers/testing')
   app.use('/api/testing', testingRouter)
 }
-app.use(unKnownEndpoint)
+app.use('/api', unKnownEndpoint)
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'dist', 'index.html'))
+})
+
 app.use(errorHandler)
 
 module.exports = app

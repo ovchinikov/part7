@@ -1,37 +1,17 @@
-import { useState } from 'react'
-import blogService from '../services/blogs'
+import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
-const Blog = ({ blog, increaseLikes, deleteBlog, user }) => {
-  const [visible, setVisible] = useState(false)
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5,
-  }
-  const handleView = () => {
-    setVisible(!visible)
-  }
-
-  const showWhenVisible = { display: visible ? '' : 'none' }
-
+const Blog = ({ blog }) => {
   return (
-    <div style={blogStyle}>
+    <div className='p-4 mt-2'>
       <div className='blog'>
-        {blog.title} {blog.author}{' '}
-        <button onClick={handleView}>{visible ? 'hide' : 'view'}</button>
-      </div>
-      <div style={showWhenVisible} key={blog.id} className='showWhenVisible'>
-        <p>{blog.author}</p>
-        <a href={blog.url}>{blog.url}</a>
-        <p>
-          likes: {blog.likes}
-          <button onClick={increaseLikes}>like</button>
-        </p>
-        <p>{user.username}</p>
-        <button onClick={deleteBlog}>delete</button>
+        <Link
+          to={`/blogs/${blog.id}`}
+          className='text-2xl text-indigo-500 hover:text-indigo-600'
+        >
+          {blog.title} -{' '}
+          <span className='text-xl text-gray-500'>{blog.author}</span>
+        </Link>
       </div>
     </div>
   )
@@ -39,9 +19,6 @@ const Blog = ({ blog, increaseLikes, deleteBlog, user }) => {
 
 Blog.propTypes = {
   blog: PropTypes.object.isRequired,
-  /*  increaseLikes: PropTypes.func.isRequired,
-  deleteBlog: PropTypes.func.isRequired, */
-  user: PropTypes.object.isRequired,
 }
 
 export default Blog

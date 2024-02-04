@@ -1,23 +1,19 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import Blog from './components/Blog'
-import blogService from './services/blogs'
 import Notification from './components/notification'
 import LoginForm from './components/loginform'
 import Togglable from './components/togglable'
 import CreateBlog from './components/createblog'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-  appendBlog,
-  createBlog,
-  initializeBlogs,
-  setBlogs,
-  deleteBlogs,
-} from './reducer/blogsReducer'
-import { initializeNotification } from './reducer/notification'
+import { Route, Routes, Navigate } from 'react-router-dom'
+import { initializeBlogs } from './reducer/blogsReducer'
+import { initializeUser, setUser } from './reducer/userReducer'
+import Menu from './components/Menu'
+import Users from './components/Users'
+import BlogComponent from './components/blogComponent'
+import User from './components/User'
 
 const App = () => {
-  const [user, setUser] = useState(null)
-  const [message, setMessage] = useState({ type: '', text: '' })
   const dispatch = useDispatch()
 
   const blogFormRef = useRef()
@@ -26,100 +22,74 @@ const App = () => {
     dispatch(initializeBlogs())
   }, [dispatch])
 
-  const blogs = useSelector((state) => state.blogs)
-
-  console.log(blogs)
-
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('user')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      setUser(user)
-      blogService.setToken(user.token)
-    }
+    dispatch(initializeUser())
   }, [])
 
-  const notifyUser = (text, type) => {
-    setMessage({ text, type })
-  }
-
-  const handleLogOut = () => {
-    const ok = window.confirm('Are you want to logout?')
-    if (ok) {
-      window.localStorage.clear()
-    } else return
-  }
-  // create blog
-
-  const addBlog = ({ title, author, url }) => {
-    try {
-      dispatch(createBlog({ title, author, url }))
-      dispatch(initializeNotification(`${title} added by ${user.name}`, 5))
-      blogFormRef.current.toggleVisibility()
-    } catch (error) {
-      dispatch(initializeNotification(error.message, 5))
-    }
-  }
-
-  // increase likes
-
-  const increaseLikes = async (blog) => {
-    try {
-      const newBlog = await blogService.update(blog.id, {
-        ...blog,
-        likes: blog.likes + 1,
-      })
-      setBlogs(blogs.map((blog) => (blog.id !== newBlog.id ? blog : newBlog)))
-    } catch (error) {
-      dispatch(initializeBlogs(error.message, 'error'))
-    }
-  }
-
-  const deleteBlog = (blog) => {
-    try {
-      const ok = window.confirm(`Remove blog ${blog.title} by ${blog.author}`)
-      if (ok) {
-        dispatch(deleteBlogs(blog.id))
-        dispatch(initializeNotification(`${blog.title} removed`, 5))
-      } else return
-    } catch (error) {
-      dispatch(initializeNotification(error.message, 5))
-    }
-  }
+  const blogs = useSelector((state) => state.blogs)
+  const user = useSelector((state) => state.user)
+  const message = useSelector((state) => state.notification)
 
   return (
-    <div>
-      <Notification message={message} />
-      {!user && (
-        <Togglable buttonLabel='login'>
-          <LoginForm setUser={setUser} notifyUser={notifyUser} />
-        </Togglable>
-      )}
-      {user && (
-        <div>
-          <p>Bienvenido {user.username}!</p>
-          <button onClick={handleLogOut}>Logout</button>
-          <Togglable buttonLabel='create' ref={blogFormRef}>
-            <CreateBlog
-              setBlogs={appendBlog}
-              blogs={blogs}
-              notifyUser={notifyUser}
-              user={user}
-              blogFormRef={blogFormRef}
-              createBlog={addBlog}
-            />
-          </Togglable>
-          <h2>blogs</h2>
-          {blogs.map((blog) => (
-            <Blog
-              key={blog.id}
-              blog={blog}
-              user={user}
-              deleteBlog={() => deleteBlog(blog)}
-            />
-          ))}
+    <div className='flex flex-col justify-between min-h-screen'>
+      <Menu />
+      <Routes>
+        <Route
+          path='/login'
+          element={
+            user ? <Navigate to='/blogs' /> : <LoginForm setUser={setUser} />
+          }
+        />
+        <Route
+          path='/blogs'
+          element={
+            user ? (
+              <div className='flex justify-center flex-col items-center'>
+                <div className='mt-2'>
+                  <Togglable buttonLabel='create' ref={blogFormRef}>
+                    <CreateBlog />
+                  </Togglable>
+                </div>
+
+                <div className='flex flex-col'>
+                  <h2 className='text-3xl text-indigo-600 mt-4 mb-2'>
+                    All blogs
+                  </h2>
+                  {blogs.map((blog) => (
+                    <Blog key={blog.id} blog={blog} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Navigate replace to='/login' />
+            )
+          }
+        />
+        <Route
+          path='/users'
+          element={user ? <Users /> : <Navigate replace to='/login' />}
+        />
+        <Route path='/blogs/:id' element={<BlogComponent />} />
+        <Route
+          path='/users/:id'
+          element={user ? <User /> : <div>Please login to view users</div>}
+        />
+      </Routes>
+
+      <div className='flex justify-center  p-4 items-center w-full'>
+        <div className='mt-4'>
+          <p className='text-sm text-gray-500'>
+            &copy; {new Date().getFullYear()}{' '}
+            <a
+              href='http://github.com/ovchinikov'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              Ovchinikov
+            </a>
+          </p>
         </div>
-      )}
+      </div>
     </div>
   )
 }
